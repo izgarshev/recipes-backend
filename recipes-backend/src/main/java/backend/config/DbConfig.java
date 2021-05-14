@@ -1,11 +1,15 @@
 package backend.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.jdbc.metadata.HikariDataSourcePoolMetadata;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -27,8 +31,22 @@ public class DbConfig {
 
     @Bean
     public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource(url, username, password);
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        return dataSource;
+        return new HikariDataSource(hikariConfig());
+    }
+
+    @Bean
+    public HikariConfig hikariConfig() {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setPoolName("hikariCP");
+        hikariConfig.setDriverClassName("org.postgresql.Driver");
+        hikariConfig.setUsername(username);
+        hikariConfig.setPassword(password);
+        hikariConfig.setJdbcUrl(url);
+        return hikariConfig;
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate() {
+        return new JdbcTemplate(dataSource());
     }
 }
